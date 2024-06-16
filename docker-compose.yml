@@ -1,6 +1,19 @@
 version: "3.9"
 
 services:
+
+  postgresql:
+    image: postgres:14
+    container_name: database
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=airplanes
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    restart: always
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
@@ -69,7 +82,7 @@ services:
       - producer
 
   grafana:
-    image: grafana/grafana
+    build: config/grafana
     container_name: grafana
     ports:
       - "3000:3000"
@@ -92,6 +105,8 @@ services:
       - kafka-ui
 
   consumer:
+    depends_on:
+      - postgresql
     build:
       context: .
       dockerfile: radar/Dockerfile
@@ -99,3 +114,7 @@ services:
       - "8081:8080"
     links:
       - kafka-ui
+      - postgresql
+
+networks:
+  radar:
